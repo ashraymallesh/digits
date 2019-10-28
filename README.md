@@ -9,6 +9,11 @@
 ## TODO List
 https://docs.google.com/document/d/1_loW1Jkdkzdez2xQ6fuMg_dCkHwCdWu_cqsxOcZmOPg/edit?usp=sharing
 
+## Link to Kaggle Competition:
+https://www.kaggle.com/t/e1ea921edc0d4f689a0aaa98f07511b0
+
+## Project 3 Spec
+https://cs.mcgill.ca/~wlh/comp551/files/miniproject3_spec.pdf
 
 ## Authors:
 - Ashray Malleshachari, McGill University: [ashray.malleshachari@mail.mcgill.ca](mailto:ashray.malleshachari@mail.mcgill.ca)
