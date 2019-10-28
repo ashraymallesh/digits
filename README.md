@@ -3,7 +3,7 @@
 # Mini-Project 3: Modified MNIST Handwritten Digit Recognition
 
 
-## Our paper:
+## Our paper: https://www.overleaf.com/5199379582nmyffnpqqxdc (careful this is an edit link)
 
 
 ## Authors:
