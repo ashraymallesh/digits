@@ -7,5 +7,5 @@
 
 
 ## Authors:
-- Ashray Malleshachari, McGill University: [ashray.malleshachari@mail.mcgill.ca]
-- Hamza Rizwan, McGill University: [hamza.rizwan@mail.mcgill.ca]
+- Ashray Malleshachari, McGill University: [ashray.malleshachari@mail.mcgill.ca](mailto:ashray.malleshachari@mail.mcgill.ca)
+- Hamza Rizwan, McGill University: [hamza.rizwan@mail.mcgill.ca](mailto:hamza.rizwan@mail.mcgill.ca)
