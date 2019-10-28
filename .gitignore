@@ -26,4 +26,5 @@ Temporary Items
 .apdisk
 
 data_raw/test_max_x
-data_raw/train_max_y
+data_raw/train_max_x
+.DS_Store
