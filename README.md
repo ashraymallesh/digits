@@ -6,7 +6,8 @@
 ## Our paper: https://www.overleaf.com/5199379582nmyffnpqqxdc 
 (careful this is an edit link)
 
-## TODO List:https://docs.google.com/document/d/1_loW1Jkdkzdez2xQ6fuMg_dCkHwCdWu_cqsxOcZmOPg/edit?usp=sharing
+## TODO List
+https://docs.google.com/document/d/1_loW1Jkdkzdez2xQ6fuMg_dCkHwCdWu_cqsxOcZmOPg/edit?usp=sharing
 
 
 ## Authors:
