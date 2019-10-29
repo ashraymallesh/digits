@@ -1,0 +1,108 @@
+import time
+import copy
+
+import torch
+from torch import nn, optim
+from torchvision.transforms import transforms
+from src.data import ModifiedMNISTDataset
+from tqdm import tqdm
+from torch.utils.data import DataLoader
+
+
+def eval_model(model, criterion, dataloader, device):
+    model.eval()
+    running_loss = 0.0
+    running_corrects = 0
+    for inputs, labels in tqdm(dataloader, desc=f"Evaluating"):
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        with torch.no_grad():
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
+            loss = criterion(outputs, labels)
+            running_loss += loss.item() * inputs.size(0)
+            running_corrects += torch.sum(preds == labels.data)
+
+    eval_loss = running_loss / len(dataloader) / dataloader.batch_size
+    eval_acc = running_corrects.double() / len(dataloader) / dataloader.batch_size
+
+    return {"loss": eval_loss, "acc": eval_acc}
+
+
+def train_model(model, criterion, optimizer, scheduler,
+                train_dataloader, valid_dataloader,
+                device, num_epochs=25):
+    since = time.time()
+
+    best_model_wts = copy.deepcopy(model.state_dict())
+    best_acc = 0.0
+
+    for epoch in range(num_epochs):
+        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        print('-' * 10)
+
+        model.train()
+        running_loss = 0.0
+        running_corrects = 0
+
+        for inputs, labels in tqdm(train_dataloader, desc=f"Training ({epoch}/{num_epochs})"):
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            optimizer.zero_grad()
+
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            running_loss += loss.item() * inputs.size(0)
+            running_corrects += torch.sum(preds == labels.data)
+
+        scheduler.step()
+        epoch_loss = running_loss / len(train_dataloader) / train_dataloader.batch_size
+        epoch_acc = running_corrects.double() / len(train_dataloader) / train_dataloader.batch_size
+
+        valid_results = eval_model(model, criterion, valid_dataloader, device)
+        print('Train Loss: {:.4f} Acc: {:.4f}'.format(epoch_loss, epoch_acc))
+        print('Valid Loss: {:.4f} Acc: {:.4f}'.format(valid_results["loss"],
+                                                      valid_results["acc"]))
+
+        if valid_results["acc"] > best_acc:
+            best_acc = valid_results["acc"]
+            best_model_wts = copy.deepcopy(model.state_dict())
+        print()
+
+    time_elapsed = time.time() - since
+    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    print('Best val Acc: {:4f}'.format(best_acc))
+
+    # load best model weights
+    model.load_state_dict(best_model_wts)
+    return model
+
+
+if __name__ == '__main__':
+    import torchvision.models as models
+    device = torch.device("cpu")
+    model_ft = models.resnet18(pretrained=True)
+    num_ftrs = model_ft.fc.in_features
+    model_ft.fc = nn.Linear(num_ftrs, 10)
+    criterion = nn.CrossEntropyLoss()
+    optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+    exp_lr_scheduler = optim.lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+
+    t = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor()])
+
+    train_dataset = ModifiedMNISTDataset("../data/debug_train_x", "../data/debug_train_y.csv",
+                                         to_rgb=True, transform=t)
+    valid_dataset = ModifiedMNISTDataset("../data/debug_valid_x", "../data/debug_valid_y.csv",
+                                         to_rgb=True, transform=t)
+    train_dataloader = DataLoader(train_dataset, batch_size=10, shuffle=True)
+    valid_dataloader = DataLoader(valid_dataset, batch_size=10, shuffle=True)
+
+    train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler, train_dataloader, valid_dataloader, device)
