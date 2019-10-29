@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from torchvision.transforms import ToPILImage
 import numpy as np
-tpi = ToPILImage(mode="RGB")
+tpi = ToPILImage()
 
 
 class ModifiedMNISTDataset(Dataset):
