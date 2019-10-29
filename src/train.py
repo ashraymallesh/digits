@@ -4,10 +4,11 @@ import copy
 import torch
 from torch import nn, optim
 from torchvision.transforms import transforms
-from src.data import ModifiedMNISTDataset
+from src.data import ModifiedMNISTDataset, train_test_split
 from tqdm import tqdm
 from torch.utils.data import DataLoader
-
+import pandas as pd
+import numpy as np
 
 def eval_model(model, criterion, dataloader, device):
     model.eval()
@@ -98,10 +99,21 @@ if __name__ == '__main__':
             transforms.CenterCrop(224),
             transforms.ToTensor()])
 
-    train_dataset = ModifiedMNISTDataset("../data/debug_train_x", "../data/debug_train_y.csv",
-                                         to_rgb=True, transform=t)
-    valid_dataset = ModifiedMNISTDataset("../data/debug_valid_x", "../data/debug_valid_y.csv",
-                                         to_rgb=True, transform=t)
+    # using entire dataset (6hrs/epoch on my laptop)
+    # x = pd.read_pickle("../data/train_max_x")
+    # y = pd.read_csv("../data/train_max_y.csv")
+    #
+    # train_x, train_y, valid_x, valid_y = train_test_split(x, y)
+    #
+    # train_dataset = ModifiedMNISTDataset(train_x, train_y,
+    #                                      to_rgb=True, transform=t)
+    # valid_dataset = ModifiedMNISTDataset(valid_x, valid_y,
+    #                                      to_rgb=True, transform=t)
+
+    train_dataset = ModifiedMNISTDataset.from_files("../data/debug_train_x", "../data/debug_train_y.csv",
+                                                    to_rgb=True, transform=t)
+    valid_dataset = ModifiedMNISTDataset.from_files("../data/debug_valid_x", "../data/debug_valid_y.csv",
+                                                    to_rgb=True, transform=t)
     train_dataloader = DataLoader(train_dataset, batch_size=10, shuffle=True)
     valid_dataloader = DataLoader(valid_dataset, batch_size=10, shuffle=True)
 
