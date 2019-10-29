@@ -34,7 +34,7 @@ class ModifiedMNISTDataset(Dataset):
             image = image.unsqueeze(-1).repeat(1,1,3)
         if self.transform:
             image = self.transform(tpi(image))
-        if self.to_rgb:
+        elif self.to_rgb:
             # convert to (C x H x W) for model input
             image = image.transpose(0,2).transpose(1,2)
         return image, label
