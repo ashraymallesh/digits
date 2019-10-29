@@ -15,6 +15,13 @@ https://www.kaggle.com/t/e1ea921edc0d4f689a0aaa98f07511b0
 ## Project 3 Spec
 https://cs.mcgill.ca/~wlh/comp551/files/miniproject3_spec.pdf
 
+## Ideas:
+- Data Augmentation (fast.ai)
+- Pretrained models
+
+## Literature Review
+- Background noise
+
 ## Authors:
 - Ashray Malleshachari, McGill University: [ashray.malleshachari@mail.mcgill.ca](mailto:ashray.malleshachari@mail.mcgill.ca)
 - Hamza Rizwan, McGill University: [hamza.rizwan@mail.mcgill.ca](mailto:hamza.rizwan@mail.mcgill.ca)
