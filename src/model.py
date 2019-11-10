@@ -2,12 +2,17 @@ import torchvision
 from torch import nn
 import torch.nn.functional as F
 
-def pretrained_resnet18(num_classes):
-    model = torchvision.models.resnet18(pretrained=True)
+def pretrained_resnet18(num_classes, pretrained=True):
+    model = torchvision.models.resnet18(pretrained=pretrained)
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, num_classes)
     return model
 
+def pretrained_resnet50(num_classes, pretrained=True):
+    model = torchvision.models.resnet50(pretrained=pretrained)
+    num_ftrs = model.fc.in_features
+    model.fc = nn.Linear(num_ftrs, num_classes)
+    return model
 
 def pretrained_mobilenet(num_classes):
     model = torchvision.models.mobilenet_v2(pretrained=True)
