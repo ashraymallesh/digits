@@ -48,6 +48,8 @@ class ModifiedMNISTDataset(Dataset):
         # add channels (torchvision expext (H x W, C) for torch tensors)
         if self.to_rgb:
             image = image.unsqueeze(-1).repeat(1,1,3)
+        else:
+            image = image.unsqueeze(0)
         if self.transform:
             image = self.transform(tpi(image))
         elif self.to_rgb:
