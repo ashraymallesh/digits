@@ -1,8 +1,8 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
-import matplotlib.pyplot as plt
 from torchvision.transforms import ToPILImage
+from fastai.vision import Image, Transform
 import numpy as np
 tpi = ToPILImage()
 
@@ -10,18 +10,21 @@ tpi = ToPILImage()
 class ModifiedMNISTDataset(Dataset):
     """Modified MNIST dataset."""
 
-    def __init__(self, x: np.ndarray, y: np.ndarray,
+    def __init__(self, x: np.ndarray, y: np.ndarray = None,
                  to_rgb: bool = False,
-                 transform=None):
+                 fastai_transform=None,
+                 torchvision_transform=None):
         self.images = x
         self.labels = y
         self.to_rgb = to_rgb
-        self.transform = transform
+        self.fastai_transform = fastai_transform
+        self.torchvision_transform = torchvision_transform
 
     @classmethod
-    def from_files(cls, x_pkl_file, y_csv_file,
+    def from_files(cls, x_pkl_file, y_csv_file = None,
                    to_rgb: bool = False,
-                   transform=None):
+                   fastai_transform=None,
+                   torchvision_transform=None):
         """Constructor from files
 
         Included as separate constructor since pickling after train-test split
@@ -36,34 +39,30 @@ class ModifiedMNISTDataset(Dataset):
                 on a sample.
         """
         x = pd.read_pickle(x_pkl_file)
-        y =  pd.read_csv(y_csv_file)["Label"].to_numpy()
-        return cls(x, y, to_rgb, transform)
+        if y_csv_file:
+            y =  pd.read_csv(y_csv_file)["Label"].to_numpy()
+        else:
+            y = None
+        return cls(x, y, to_rgb, fastai_transform, torchvision_transform)
 
     def __len__(self):
         return len(self.images)
 
     def __getitem__(self, idx):
-        label = torch.LongTensor([self.labels[idx]]).squeeze()
-        image = torch.Tensor(self.images[idx]/256)
-        # add channels (torchvision expext (H x W, C) for torch tensors)
+
+        image = torch.Tensor(self.images[idx]/256).unsqueeze(0)
         if self.to_rgb:
-            image = image.unsqueeze(-1).repeat(1,1,3)
+            image = image.repeat(3,1,1)
+        if self.fastai_transform:
+            image = Image(image).apply_tfms(self.fastai_transform).px
+        elif self.torchvision_transform:
+            image = self.torchvision_transform(tpi(image))
+
+        if self.labels is None:
+            return image
         else:
-            image = image.unsqueeze(0)
-        if self.transform:
-            image = self.transform(tpi(image))
-        elif self.to_rgb:
-            # convert to (C x H x W) for model input
-            image = image.transpose(0,2).transpose(1,2)
-        return image, label
-
-
-def imshow(inp, title=None):
-    """Imshow for Tensor."""
-    plt.imshow(inp, cmap="gray_r")
-    if title is not None:
-        plt.title(title)
-    plt.pause(0.001)  # pause a bit so that plots are updated
+            label = torch.LongTensor([self.labels[idx]]).squeeze()
+            return image, label
 
 
 def train_test_split(x: np.ndarray, y: pd.DataFrame,
