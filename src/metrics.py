@@ -37,7 +37,9 @@ class APRF:
         return cls(**params)
 
     def update_train(self, output: Tensor, target: Tensor, criterion):
-        self.train_loss += criterion(output, target)
+        output = output.cpu()
+        target = target.cpu()
+        self.train_loss += criterion(output, target).item()
         self.train_batches += 1
 
         _, predicted_i = output.max(dim=1)
@@ -55,7 +57,9 @@ class APRF:
             0).float().numpy()
 
     def update_eval(self, output: Tensor, target: Tensor, criterion):
-        self.eval_loss += criterion(output, target)
+        output = output.cpu()
+        target = target.cpu()
+        self.eval_loss += criterion(output, target).item()
         self.eval_batches += 1
 
         _, predicted_i = output.max(dim=1)
