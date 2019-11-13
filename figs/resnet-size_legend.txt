@@ -1,3 +1,0 @@
-grey: resnet50_pt=false_bs=128_fat=true
-orange: resnet101_pt=false_bs=128_fat=true
-light blue: resnet18_pt=false_bs=128_fat=true

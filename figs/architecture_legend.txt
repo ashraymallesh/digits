@@ -1,4 +1,0 @@
-dark blue: mobilenet_pt=false_bs=128_fat=true
-light blue: wideresnet_pt=false_bs=128_fat=true
-grey: resnet50_pt=false_bs=128_fat=true
-red: shufflenet_pt=false_bs=128_fat=true
