@@ -1,10 +1,11 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
-from torchvision.transforms import ToPILImage
 from fastai.vision import Image, Transform
 import numpy as np
-tpi = ToPILImage()
+import torchvision
+tpi = torchvision.transforms.ToPILImage()
+tt = torchvision.transforms.ToTensor()
 
 
 class ModifiedMNISTDataset(Dataset):
@@ -13,18 +14,26 @@ class ModifiedMNISTDataset(Dataset):
     def __init__(self, x: np.ndarray, y: np.ndarray = None,
                  to_rgb: bool = False,
                  fastai_transform=None,
-                 torchvision_transform=None):
-        self.images = x
+                 torchvision_transform=None,
+                 resize=None):
+        self.images = torch.Tensor(x/256).unsqueeze(1)
+        if to_rgb:
+            self.images = self.images.repeat(1,3,1,1)
+        if resize:
+            rs = torchvision.transforms.Resize(resize)
+            self.images = torch.stack([tt(rs(tpi(i))) for i in self.images])
         self.labels = y
         self.to_rgb = to_rgb
         self.fastai_transform = fastai_transform
         self.torchvision_transform = torchvision_transform
 
+
     @classmethod
     def from_files(cls, x_pkl_file, y_csv_file = None,
                    to_rgb: bool = False,
                    fastai_transform=None,
-                   torchvision_transform=None):
+                   torchvision_transform=None,
+                   resize=None):
         """Constructor from files
 
         Included as separate constructor since pickling after train-test split
@@ -43,21 +52,17 @@ class ModifiedMNISTDataset(Dataset):
             y =  pd.read_csv(y_csv_file)["Label"].to_numpy()
         else:
             y = None
-        return cls(x, y, to_rgb, fastai_transform, torchvision_transform)
+        return cls(x, y, to_rgb, fastai_transform, torchvision_transform, resize)
 
     def __len__(self):
         return len(self.images)
 
     def __getitem__(self, idx):
-
-        image = torch.Tensor(self.images[idx]/256).unsqueeze(0)
-        if self.to_rgb:
-            image = image.repeat(3,1,1)
+        image = self.images[idx]
         if self.fastai_transform:
             image = Image(image).apply_tfms(self.fastai_transform).px
         elif self.torchvision_transform:
             image = self.torchvision_transform(tpi(image))
-
         if self.labels is None:
             return image
         else:

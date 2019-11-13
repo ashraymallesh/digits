@@ -88,16 +88,17 @@ def train_model(model, criterion, optimizer, scheduler,
 
 
 if __name__ == '__main__':
-    DEBUG = False
-    MODEL_TYPE = "SHUFFLENET2" # RESNET18, RESNET50, RESNET101, WIDERESNET, MOBILENET, SHUFFLENET, SHUFFLENET2, SIMPLE_CNN
+    DEBUG = True
+    MODEL_TYPE = "SIMPLE_CNN" # RESNET18, RESNET50, RESNET101, WIDERESNET, MOBILENET, SHUFFLENET, SHUFFLENET2, SIMPLE_CNN
     PRETRAINED = False
     TORCHVISION_TRANSFORM = False
     FASTAI_TRANSFORM = True
-    TRAIN_TEST_SPLIT = 0.99
-    BATCH_SIZE = 128
+    TRAIN_TEST_SPLIT = 0.90
+    BATCH_SIZE = 256
     NUM_EPOCHS = 30
+    IMAGE_RESIZE = 256
     DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    EXPERIMENT_NAME = f"{MODEL_TYPE}_PT={PRETRAINED}_BS={BATCH_SIZE}_FAT={FASTAI_TRANSFORM}"
+    EXPERIMENT_NAME = f"{MODEL_TYPE}_PT={PRETRAINED}_BS={BATCH_SIZE}_FAT={FASTAI_TRANSFORM}_IRS={IMAGE_RESIZE}"
     MODEL_SAVE_DIR = Path(f"saved_models/{EXPERIMENT_NAME}")
     MODEL_SAVE_DIR.mkdir(exist_ok=True)
     tb_writer = SummaryWriter(log_dir=f"saved_models/tensorboard/{EXPERIMENT_NAME}")
@@ -164,12 +165,14 @@ if __name__ == '__main__':
                                                         "data/debug_train_y.csv",
                                                         to_rgb=False,
                                                         torchvision_transform=tv_t,
-                                                        fastai_transform=fa_t_train)
+                                                        fastai_transform=fa_t_train,
+                                                        resize=IMAGE_RESIZE)
         valid_dataset = ModifiedMNISTDataset.from_files("data/debug_valid_x",
                                                         "data/debug_valid_y.csv",
                                                         to_rgb=False,
                                                         torchvision_transform=tv_t,
-                                                        fastai_transform=fa_t_eval)
+                                                        fastai_transform=fa_t_eval,
+                                                        resize=IMAGE_RESIZE)
     else:
         x = pd.read_pickle("data/train_max_x")
         y = pd.read_csv("data/train_max_y.csv")
@@ -179,11 +182,13 @@ if __name__ == '__main__':
         train_dataset = ModifiedMNISTDataset(train_x, train_y,
                                              to_rgb=TO_RGB,
                                              torchvision_transform=tv_t,
-                                             fastai_transform=fa_t_train)
+                                             fastai_transform=fa_t_train,
+                                             resize=IMAGE_RESIZE)
         valid_dataset = ModifiedMNISTDataset(valid_x, valid_y,
                                              to_rgb=TO_RGB,
                                              torchvision_transform=tv_t,
-                                             fastai_transform=fa_t_eval)
+                                             fastai_transform=fa_t_eval,
+                                             resize=IMAGE_RESIZE)
 
     print("creating data loader...")
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)

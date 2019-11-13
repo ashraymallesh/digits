@@ -53,6 +53,16 @@ def pretrained_shufflenet2(num_classes, pretrained=True):
     return model
 
 
+def pretrained_densenet(num_classes, pretrained=True):
+    model = torchvision.models.densenet161(pretrained=pretrained, num_classes=num_classes)
+    return model
+
+
+def pretrained_inception(num_classes, pretrained=True):
+    model = torchvision.models.inception_v3(pretrained=pretrained, num_classes=num_classes)
+    return model
+
+
 class SimpleCNN(nn.Module):
     def __init__(self, num_classes: int, apply_log_softmax: bool = False):
         super().__init__()
