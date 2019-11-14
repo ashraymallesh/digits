@@ -35,7 +35,8 @@ def eval_model(model, criterion, dataloader, metric_helper, device):
 def train_model(model, criterion, optimizer, scheduler,
                 train_dataloader, valid_dataloader,
                 metric_helper, tb_writer,
-                device, num_epochs=25):
+                device, num_epochs=25,
+                batch_accum=1):
     since = time.time()
     best_acc = 0.0
 
@@ -44,20 +45,32 @@ def train_model(model, criterion, optimizer, scheduler,
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
 
+        baccum_i = batch_accum # gradient accumulation
         model.train()
+        optimizer.zero_grad()
         for inputs, labels in tqdm(train_dataloader, desc=f"Training ({epoch}/{num_epochs})"):
+            baccum_i -= 1
             inputs = inputs.to(device)
             labels = labels.to(device)
-            optimizer.zero_grad()
 
             outputs = model(inputs)
             loss = criterion(outputs, labels)
+            loss = loss / batch_accum
             loss.backward()
-            optimizer.step()
+            # desired number of batches accumulate
+            if baccum_i == 0:
+                baccum_i = batch_accum
+                optimizer.step()
+                optimizer.zero_grad()
 
             metric_helper.update_train(outputs, labels, criterion)
-        scheduler.step()
+        # not enough batches to accumulate desired number
+        if baccum_i != batch_accum:
+            baccum_i = batch_accum
+            optimizer.step()
+            optimizer.zero_grad()
 
+        scheduler.step()
         eval_model(model, criterion, valid_dataloader, metric_helper, device)
 
         summary = metric_helper.summary()
@@ -88,13 +101,14 @@ def train_model(model, criterion, optimizer, scheduler,
 
 
 if __name__ == '__main__':
-    DEBUG = True
-    MODEL_TYPE = "SIMPLE_CNN" # RESNET18, RESNET50, RESNET101, WIDERESNET, MOBILENET, SHUFFLENET, SHUFFLENET2, SIMPLE_CNN
-    PRETRAINED = False
+    DEBUG = False
+    MODEL_TYPE = "WIDERESNET" # RESNET18, RESNET50, RESNET101, WIDERESNET, MOBILENET, SHUFFLENET, SHUFFLENET2, SIMPLE_CNN
+    PRETRAINED = True
     TORCHVISION_TRANSFORM = False
     FASTAI_TRANSFORM = True
-    TRAIN_TEST_SPLIT = 0.90
-    BATCH_SIZE = 256
+    TRAIN_TEST_SPLIT = 0.99
+    BATCH_SIZE = 32
+    BATCH_ACCUM = 4
     NUM_EPOCHS = 30
     IMAGE_RESIZE = 256
     DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -163,13 +177,13 @@ if __name__ == '__main__':
     if DEBUG:
         train_dataset = ModifiedMNISTDataset.from_files("data/debug_train_x",
                                                         "data/debug_train_y.csv",
-                                                        to_rgb=False,
+                                                        to_rgb=TO_RGB,
                                                         torchvision_transform=tv_t,
                                                         fastai_transform=fa_t_train,
                                                         resize=IMAGE_RESIZE)
         valid_dataset = ModifiedMNISTDataset.from_files("data/debug_valid_x",
                                                         "data/debug_valid_y.csv",
-                                                        to_rgb=False,
+                                                        to_rgb=TO_RGB,
                                                         torchvision_transform=tv_t,
                                                         fastai_transform=fa_t_eval,
                                                         resize=IMAGE_RESIZE)
@@ -200,7 +214,8 @@ if __name__ == '__main__':
     model = train_model(MODEL, CRITERION, OPTIMIZER, LR_SCHEDULER,
                         train_dataloader, valid_dataloader,
                         metric_helper, tb_writer,
-                        DEVICE, num_epochs=NUM_EPOCHS)
+                        DEVICE, num_epochs=NUM_EPOCHS,
+                        batch_accum=BATCH_ACCUM)
 
 
     print("running test set predictions")
@@ -208,7 +223,8 @@ if __name__ == '__main__':
     test_dataset = ModifiedMNISTDataset.from_files("data/test_max_x",
                                                    to_rgb=TO_RGB,
                                                     torchvision_transform=tv_t,
-                                                    fastai_transform=fa_t_eval)
+                                                    fastai_transform=fa_t_eval,
+                                                   resize=IMAGE_RESIZE)
     test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
     MODEL.eval()
     testset_predictions = []
