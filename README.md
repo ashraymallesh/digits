@@ -6,7 +6,7 @@ In this mini-project the goal is to perform an image analysis prediction challen
 
 ## [Project 3 Spec](miniproject3_spec.pdf)
 
-### Kaggle Competition Leaderboard (11th Place - Group 32)
+### Kaggle Competition Leaderboard (11th Place - Top 10% - Group 32)
 https://www.kaggle.com/c/modified-mnist/leaderboard
 
 
